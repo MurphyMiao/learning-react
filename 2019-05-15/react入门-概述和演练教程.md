@@ -259,3 +259,427 @@ ReactDOM.render(<App />, document.getElementById('root'))
 现在我们拥有了实际开始开发React所需的所有工具和设置。
 
 ### **JSX: JavaScript + XML**
+
+如你所见，我们在react代码中使用了像HTML，但不完全是HTML的代码。这就是代表JavaScript XML的JSX。
+
+在JSX中，我们可以像HTML那样书写，还可以创建XML式的标签。下列代码看起来像将JSX分配给变量。
+
+*JSX*
+```js
+const heading = <h1 className="site-heading">Hello, React</h1>
+```
+在React中不强制要求使用JSX。在内部引擎中，运行着createElement方法，这个方法接受标签、包含属性的对象和组件的子项，渲染成相同的信息。以下代码将和上面的JSX有相同的输出。
+
+*Non-JSX*
+```js
+const heading = React.createElement('h1', { className: 'site-heading' }, 'Hello, React!')
+```
+
+JSX实际上更接近JavaScript，而不是HTML，所以有些关键点需要在书写的时候注意。
+
+- 使用 className 而不是 class 来给元素添加CSS样式类，同时，class 是一个JavaScript的保留关键字。
+- 在JSX中，属性和方法使用驼峰写法，例如 onclick 写成 onClick。
+- 自动关闭标签必须以斜线结束，例如 <img />
+
+js语句可以使用大括号嵌入JSX中，包括变量、函数和属性。
+
+```js
+const name = 'Tania'
+const heading = <h1>Hello, {name}</h1>
+```
+
+JSX比在vanilla JavaScript中创建和附加许多元素更容易编写和理解，这也是人们喜欢React的原因之一。
+
+### **组件**
+
+到目前为止，我们创建了一个组件——App组件。React的内容几乎都是由组件构成，组件可以是class组件或简单组件。
+
+大多数React应用有很多小组件，所有组件都加载到主组件App组件中。组件通常有自己单独的文件，所以我们来改下我们的项目。
+
+从index.js中移除 App 类，像下面这样。
+
+***src/index.js***
+```js
+import React from 'react'
+import ReactDOM from 'react-dom'
+import App from './App'
+import './index.css'
+
+ReactDOM.render(<App />, document.getElementById('root'))
+```
+创建一个App.js的文件，将组件内容放到这个文件中
+
+***src/App.js***
+```js
+import React, { Component } from 'react'
+
+class App extends Component {
+  render() {
+    return (
+      <div className="App">
+        <h1>Hello, React!</h1>
+      </div>
+    )
+  }
+}
+
+export default App
+```
+我们将组件作为App输出，在index.js中加载。将组件分离到文件中并不是强制性的，但如果不这样做，应用程序将开始变得臃肿和失控。
+
+### **类组件**
+
+接下来创建另一个组件。我们要创建一个table，新建一个Table.js文件，填入一下数据。
+
+***src/Table.js***
+```js
+import React, { Component } from 'react'
+
+class Table extends Component {
+  render() {
+    return (
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Job</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Charlie</td>
+            <td>Janitor</td>
+          </tr>
+          <tr>
+            <td>Mac</td>
+            <td>Bouncer</td>
+          </tr>
+          <tr>
+            <td>Dee</td>
+            <td>Aspiring actress</td>
+          </tr>
+          <tr>
+            <td>Dennis</td>
+            <td>Bartender</td>
+          </tr>
+        </tbody>
+      </table>
+    )
+  }
+}
+
+export default Table
+```
+我们创建的这个组件是一个自定义的类组件。我们将自定义组件首字母大写来区别与HTML元素。回到App.js，加载Table，第一步时引入它。
+
+```js
+import Table from './Table'
+```
+
+然后将它加载到App的render()中，之前我们写的是“Hello，React！”。我还改变了容器的class类。
+
+```js
+return (
+  <div className="container">
+    <Table />
+  </div>
+)
+```
+如果你现在查看实时的页面，你会看到Table已经被加载好了。
+
+![table](table.png)
+
+现在我们已经看到一个自定义组件是什么样的。我们可以反复使用这个组件。然而，由于数据是写死的，因此目前这个组件用处不大。
+
+### **函数组件**
+
+React的另一种组件类型就是函数组件。这种组件不使用class关键字。让我们使用我们的Table并为它制作两个简单的组件——表头和主体。
+
+我们会使用ES6的箭头函数来创建这两个函数组件。首先是表头。
+
+```js
+const TableHeader = () => {
+  return (
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Job</th>
+      </tr>
+    </thead>
+  )
+}
+```
+然后是主体
+```js
+const TableBody = () => {
+  return (
+    <tbody>
+      <tr>
+        <td>Charlie</td>
+        <td>Janitor</td>
+      </tr>
+      <tr>
+        <td>Mac</td>
+        <td>Bouncer</td>
+      </tr>
+      <tr>
+        <td>Dee</td>
+        <td>Aspiring actress</td>
+      </tr>
+      <tr>
+        <td>Dennis</td>
+        <td>Bartender</td>
+      </tr>
+    </tbody>
+  )
+}
+```
+现在，我们的Table看起来像下面一样。
+
+```js
+class Table extends Component {
+  render() {
+    return (
+      <table>
+        <TableHeader />
+        <TableBody />
+      </table>
+    )
+  }
+}
+```
+
+一切应该表现的像之前一样。正如你所见，组件能被嵌入组件，函数组件和class组件可以混合使用。
+
+> 一个class组件必须包含render()，然后return只能返回一个父元素。
+
+做为一个总结，让我们来对比一下函数组件和class组件
+
+***函数组件***
+
+```js
+const SimpleComponent = () => {
+  return <div>Example</div>
+}
+```
+***class组件***
+```js
+class ClassComponent extends Component {
+  render() {
+    return <div>Example</div>
+  }
+}
+```
+
+请注意，如果返回包含在一行中，则不需要括号。
+
+### **props**
+
+现在，我们已经有了一个很棒的Table组件，但是数据是写死的。React的特点之一是怎样处理数据，它使用属性（称为props）和state来实现，首先，我们集中注意力到用props处理数据。
+
+第一步，让我们从TableBody组件中删除数据。
+
+***Table.js***
+```js
+const TableBody = () => {
+  return <tbody />
+}
+```
+然后把所有数据移到一个数组中，就像引入一个基于JSON的API一样。我们将必须在render()中创建一个数组。
+
+***App.js***
+
+```js
+class App extends Component {
+  render() {
+    const characters = [
+      {
+        name: 'Charlie',
+        job: 'Janitor',
+      },
+      {
+        name: 'Mac',
+        job: 'Bouncer',
+      },
+      {
+        name: 'Dee',
+        job: 'Aspring actress',
+      },
+      {
+        name: 'Dennis',
+        job: 'Bartender',
+      },
+    ]
+
+    return (
+      <div className="container">
+        <Table />
+      </div>
+    )
+  }
+}
+```
+现在，我们将使用属性将数据传递给子组件（Table），有几分像使用 data- 属性传递数据。我们可以命名为任何想用的名字，只要不是保留关键字，所以我使用了 characterData 。我传递的数据是字符变量，我会在它周围加上花括号，因为它是一个JavaScript表达式。
+
+```js
+return (
+  <div className="container">
+    <Table characterData={characters} />
+  </div>
+)
+```
+
+现在，数据被传递给了Table，我们必须从另一处访问到这个数据。
+
+***Table.js***
+
+```js
+class Table extends Component {
+  render() {
+    const { characterData } = this.props
+
+    return (
+      <table>
+        <TableHeader />
+        <TableBody characterData={characterData} />
+      </table>
+    )
+  }
+}
+```
+如果你打开React开发工具检查Table组件，你会在props中看到这个数组。这里存储的数据称为虚拟DOM，这是一种快速有效的方法，可以将数据与实际DOM同步。
+
+![props](props.png)
+
+但是这些数据还不在实际的DOM中。在Table中，我们能通过this.props访问到所有的props。我们只传递了一个props——characterData，所以我们会用this.props.characterData来获取数据。
+
+我打算使用ES6的解构赋值来创建一个包含this.props.characterData的变量。
+
+```js
+const { characterData } = this.props
+```
+
+由于我们的Table组件实际上由两个小组件构成，因此我将再次通过props传递给TableBody。
+
+***Table.js***
+```js
+class Table extends Component {
+  render() {
+    const { characterData } = this.props
+
+    return (
+      <table>
+        <TableHeader />
+        <TableBody characterData={characterData} />
+      </table>
+    )
+  }
+}
+```
+
+到目前为止，TableBody没有任何参数，并且只返回了一个标签。
+
+```js
+const TableBody = () => {
+  return <tbody />
+}
+```
+
+我们将props作为一个参数传递，然后使用[数组的map方法](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map)来循环数组生成一个表。此映射将包含在rows变量中，我们将其作为表达式返回。
+
+```js
+const TableBody = props => {
+  const rows = props.characterData.map((row, index) => {
+    return (
+      <tr key={index}>
+        <td>{row.name}</td>
+        <td>{row.job}</td>
+      </tr>
+    )
+  })
+
+  return <tbody>{rows}</tbody>
+}
+```
+如果你查看了应用程序的前端，则现在正在加载所有数据。
+
+你会注意到我给每个row都添加了一个index作为key。你应该在React的列表中始终使用key，这会帮助识别列表的每一项。我们还将在我们想要操作列表项的那一刻看到这是如何有必要的。
+
+props是一种传递给react组件现有数据的有效方法，然而组件不能更改props——它们是只读的。在下一个部分，我们将学习如何使用state来进一步控制React中的数据处理。
+
+### **state**
+
+现在，我们将字符数据存储在变量的数组中，然后将它作为props传递。
+这很好开始，但想象一下我们是否希望能够从数组中删除一个项目。使用props，我们有单向数据流，但有了状态，我们可以更新组件中的私有数据。
+
+你可以将state看做任何一种可以读写但是没必要存入数据库的数据——例如，在你确认购买商品钱的购物车中添加和删除项目。
+
+首先，我们创建一个state对象
+
+```js
+class App extends Component {
+  state = {}
+}
+```
+
+这个state对象可以包括所有你想存在着的属性。对我们来说，就是characters。
+
+```js
+class App extends Component {
+  state = {
+    characters: [],
+  }
+}
+```
+
+将我们之前创建的数组对象放入state.characters中。
+
+```js
+class App extends Component {
+  state = {
+    characters: [
+      {
+        name: 'Charlie',
+        // the rest of the data
+      },
+    ],
+  }
+}
+```
+
+我们的数据就正式的放入了state。因为我们希望能够从表中删除一个项目，我们要在父组件App中创建一个removeCharacter方法。
+
+我们会使用之前解构赋值的方法来获取this.state.characters。对于状态的更新，我们使用this.setState()（一种用于操作状态的内置方法）来完成。我们将根据我们传递的index来过滤数组，并返回新数组。
+
+> 你必须使用this.setState()来修改所有数据。直接将新值赋给 this.state.property 是不起作用的。
+
+***App.js***
+
+```js
+removeCharacter = index => {
+  const { characters } = this.state
+
+  this.setState({
+    characters: characters.filter((character, i) => {
+      return i !== index
+    }),
+  })
+}
+```
+
+filter 方法不仅改变还创建了一个新数组，并且是在JavaScript中修改数组的首选方法。这个特殊的方法是测试一个index与数组中的所有项，并返回除了符合index之外的所有项。
+
+现在我们必须将这个方法传给组件，并且在表格的每项后面添加一个按钮来调用这个方法。我们要将这个方法作为props传递给组件。
+
+***App.js***
+
+```js
+return (
+  <div className="container">
+    <Table characterData={characters} removeCharacter={this.removeCharacter} />
+  </div>
+)
+```
+
+不要忘记使用const {characters} = this.state从state中提取正确的数据。
+
