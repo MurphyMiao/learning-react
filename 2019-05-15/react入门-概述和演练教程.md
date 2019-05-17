@@ -683,3 +683,281 @@ return (
 
 不要忘记使用const {characters} = this.state从state中提取正确的数据。
 
+由于我们要从Table传递给TableBody，我们还必须将其再次作为props传递，就像对characterData那样。
+
+***Table.js***
+```js
+class Table extends Component {
+  render() {
+    const { characterData, removeCharacter } = this.props
+
+    return (
+      <table>
+        <TableHeader />
+        <TableBody characterData={characterData} removeCharacter={removeCharacter} />
+      </table>
+    )
+  }
+}
+```
+
+以下是我们在removeCharacter()方法中定义index的位置。在TableBody组件中，我们将key/index作为参数传递，所以filter方法就能知道应该移除哪一项。创建一个按钮，使用onClick事件来传递它。
+
+***Table.js***
+```js
+<tr key={index}>
+  <td>{row.name}</td>
+  <td>{row.job}</td>
+  <td>
+    <button onClick={() => props.removeCharacter(index)}>Delete</button>
+  </td>
+</tr>
+```
+
+> onClick函数必须通过一个function来返回removeCharacter()方法（并将当前index传入），否则它将尝试自动运行。
+
+好的，现在我们有了删除按钮了，并且我们可以通过删除项目来修改我们的state。
+
+![delete](delete.png)
+
+我删除了Mac。
+
+现在您应该了解状态如何初始化以及如何修改state。
+
+### **提交表单数据**
+
+现在我们存储了数据在state中，而且可以从state中删除任何项。然而，如果我们想要添加一些新数据到state中呢？在实际的应用程序中，你可能更想从一个空的state开始，再添加新的数据进去，就像待办事项和购物车一样。
+
+在此之前，让我们删除state.characters中写死的数据，因为我们现在将通过表格更新。
+
+```js
+class App extends Component {
+  state = {
+    characters: [],
+  }
+}
+```
+现在新建一个Form.js，创建一个Form组件。我们要创建一个class组件，并且使用constructor()，之前还没使用到过。我们需要constructor()来使用this，并且接收父组件的props。
+
+我们将把Form的初始状态设置为具有一些空属性的对象，并将该初始状态赋值给this.state。
+
+***Form.js***
+
+```js
+import React, { Component } from 'react'
+
+class Form extends Component {
+  constructor(props) {
+    super(props)
+
+    this.initialState = {
+      name: '',
+      job: '',
+    }
+
+    this.state = this.initialState
+  }
+}
+```
+
+此表单的目标是每次在表单中更改字段时更新表单的状态，并且当我们提交时，所有的数据都会传给App的state，然后更新Table组件。
+
+首先，创建一个每次输入都进行更改时运行的函数，传入event对象，我们将Form的state设置为输入的name(key)和value。
+
+```js
+handleChange = event => {
+  const { name, value } = event.target
+
+  this.setState({
+    [name]: value,
+  })
+}
+```
+在继续提交表单之前，还需要做一些事。在render方法中，让我们从state中获取两个属性，并将它们指定为与对应的表单键的值。我们会运行handleChange()方法作为input的onChange事件，最后抛出Form组件。
+
+```js
+render() {
+  const { name, job } = this.state;
+
+  return (
+    <form>
+      <label>Name</label>
+      <input
+        type="text"
+        name="name"
+        value={name}
+        onChange={this.handleChange} />
+      <label>Job</label>
+      <input
+        type="text"
+        name="job"
+        value={job}
+        onChange={this.handleChange} />
+    </form>
+  );
+}
+
+export default Form;
+```
+
+在App.js中，我们将Form组件放在Table组件的下方渲染。
+
+***App.js***
+```js
+return (
+  <div className="container">
+    <Table characterData={characters} removeCharacter={this.removeCharacter} />
+    <Form />
+  </div>
+)
+```
+
+如果现在我们去查看app的页面，我们会看到表单还没有提交记录。更新一些字段，您将看到Form的本地状态正在更新。
+
+![form](form.png)
+
+很好，最后一步是让我们能够实际提交数据并且更新父组件的state。我们在App中创建一个handleSubmit()方法，这个方法要获取到已经存在的this.state.characters，然后用[ES6的展开操作符](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax)来添加新传入的项。
+
+***App.js***
+```js
+andleSubmit = character => {
+  this.setState({ characters: [...this.state.characters, character] })
+}
+```
+
+让我们确保将它作为Form上的参数传递给我们.
+
+```js
+<Form handleSubmit={this.handleSubmit} />
+```
+现在在Form中，我们创建一个submitForm()方法，这个方法将调用函数，并将Form的state作为我们之前定义的character参数传递出去。它还会在提交后重置初始initialState，清空表单。
+
+***Form.js***
+```js
+submitForm = () => {
+  this.props.handleSubmit(this.state)
+  this.setState(this.initialState)
+}
+```
+最后，我们给表单添加一个提交按钮。我们使用onClick而不是onSubmit，因为我们没有使用标准提交功能。点击它会调用我们刚刚创建的submitForm方法。
+
+```html
+<input type="button" value="Submit" onClick={this.submitForm} />
+```
+
+就是这样！这个应用已经完成了。我们可以从表格中创建、添加、删除用户。因为Table和TableBody已经引入了state，所以能正确的显示数据。
+
+![finally](finally.png)
+
+如果在上面的过程中，你还有疑惑，可以到github查看[完整源码](https://github.com/taniarascia/react-tutorial)。
+
+### **引入API数据（连接后台）**
+
+React的一个非常常见的用法是从API中提取数据。如果你不熟悉API是什么或如何连接到一个API，我建议阅读[How to Connect to an API with JavaScript](https://www.taniarascia.com/how-to-connect-to-an-api-with-javascript/)。它将引导你了解API是什么以及如何将它们与vanilla JavaScript一起使用。
+
+作为一个小测试，我们可以创建一个Api.js，在文件中创建一个新的App。我们可以使用公共API（[Wikipedia API](https://en.wikipedia.org/w/api.php)）来测试，并且我在这里有一个[URL路径](https://en.wikipedia.org/w/api.php?action=opensearch&search=Seona+Dancing&format=json&origin=*)用于随机*搜索。你可以点开链接查看API——在此之前确定你的浏览器安装了[JSONView](https://chrome.google.com/webstore/detail/jsonview/chklaanhfefbnpoihckbnefhakgolnmc)。
+
+我们要使用[JavaScript内置的Fetch方法](https://www.taniarascia.com/how-to-use-the-javascript-fetch-api-to-get-json-data/)来获取URL路径中的数据并且展示它。你可以通过更改index.js中的URL来切换我们创建的应用程序和此测试文件 —— import App from './Api';
+
+因为我们已经学过创建组件、渲染、循环state数组，所以我不打算将代码一行一行的解释。涉及到的新知识是React的生命周期方法之一——componentDidMount()。生命周期是React中方法被调用的顺序。Mounting是指一个项目被插入到DOM中。
+
+当我们去获取API的数据时，我们要使用componentDidMount方法，因为我们要确保在获得数据之前，组件已经插入到了DOM之中。在下面的代码中，你还看到我们怎样从Wikipedia API获取数据，并且展示在页面中。
+
+***App.js***
+```js
+import React, { Component } from 'react'
+
+class App extends Component {
+  state = {
+    data: [],
+  }
+
+  // Code is invoked after the component is mounted/inserted into the DOM tree.
+  componentDidMount() {
+    const url =
+      'https://en.wikipedia.org/w/api.php?action=opensearch&search=Seona+Dancing&format=json&origin=*'
+
+    fetch(url)
+      .then(result => result.json())
+      .then(result => {
+        this.setState({
+          data: result,
+        })
+      })
+  }
+
+  render() {
+    const { data } = this.state
+
+    const result = data.map((entry, index) => {
+      return <li key={index}>{entry}</li>
+    })
+
+    return <ul>{result}</ul>
+  }
+}
+
+export default App
+```
+
+只要保存后在本地服务上运行后，你就能看到 Wikipedia API 的数据已经展示在DOM中了。
+
+![api](api.png)
+
+还有其他的生命周期方法，但学习它们超过了本文的范围。你可以[阅读更多关于react组件的知识](https://reactjs.org/docs/react-component.html)。
+
+维基百科搜索选择可能不是随机的。这可能是我在2005年率先发表的一篇文章。
+
+### **构建和部署react应用**
+
+我们到目前为止都是在开发环境完成的，我们一直在编译，热重新加载和更新。对于生产环境，我们将要加载静态文件 —— 不要源代码。我们可以通过构建和部署它来实现这一点。
+
+现在，如果您只想编译所有React代码并将其放在某个目录的根目录中，那么您需要做的就是运行以下行：
+
+```
+npm run build
+```
+它会创建一个build目录，里面包含了你的app。将该文件夹的内容放在任何需要的地方，你就完成了！
+
+我们还可以更进一步，让它能用npm部署。接下来我们要部署到github页面上，所以你需要熟悉git并在github上获取代码。
+
+首先确认你已经退出本地react环境，当前代码没有运行。首先，添加一个homepage字段到package.json中，这个字段的值就是我们应用程序的URL地址。
+
+***package.json***
+```json
+"homepage": "https://taniarascia.github.io/react-tutorial",
+```
+
+还要添加两行到scripts字段中
+
+```json
+"scripts": {
+  // ...
+  "predeploy": "npm run build",
+  "deploy": "gh-pages -d build"
+}
+```
+在你的项目中，你还需要安装gh-pages（在github中，发布内容到gh-pages分支上来展示页面）到开发依赖。
+
+```
+npm install --save-dev gh-pages
+```
+
+我们将创建build目录，它将包含所有已编译的静态文件。
+
+```
+npm run build
+```
+最后，我们将build目录下的内容发布到gh-pages分支上。
+
+```
+npm run deploy
+```
+我们完成了！现在这个app可以通过[https://taniarascia.github.io/react-tutorial/](https://taniarascia.github.io/react-tutorial/)线上访问了。
+
+### **总结**
+
+本文给你提供了关于React、class组件、函数组件、state、props、使用表单数据、从API中获取表单数据和构建发布应用的介绍。react还有更多需要去学习和练习的部分，现在我希望你已经能有信息自己钻研React了。
+
+- [查看源码](https://github.com/taniarascia/react-tutorial)
+- [查看项目demo](https://taniarascia.github.io/react-tutorial/)
